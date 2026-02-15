@@ -1,0 +1,30 @@
+ai_connect.settings:
+  path: '/admin/config/services/ai-connect'
+  defaults:
+    _form: '\Drupal\ai_connect\Form\SettingsForm'
+    _title: 'AI Connect Settings'
+  requirements:
+    _permission: 'administer ai connect'
+
+ai_connect.manifest:
+  path: '/api/ai-connect/v1/manifest'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\ManifestController::manifest'
+  requirements:
+    _access: 'TRUE'
+
+ai_connect.auth_login:
+  path: '/api/ai-connect/v1/auth/login'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\AuthController::login'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+ai_connect.tool_execute:
+  path: '/api/ai-connect/v1/tools/{tool_name}'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\ToolsController::execute'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'

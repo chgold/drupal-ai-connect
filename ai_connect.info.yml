@@ -1,0 +1,15 @@
+name: 'AI Connect'
+type: module
+description: 'WebMCP Protocol Bridge - Connect AI agents to your Drupal site using industry-standard authentication'
+core_version_requirement: ^10 || ^11
+package: 'AI'
+
+dependencies:
+  - drupal:simple_oauth
+  - drupal:serialization
+  - drupal:rest
+
+configure: ai_connect.settings
+
+project: 'ai_connect'
+version: '1.0.0'

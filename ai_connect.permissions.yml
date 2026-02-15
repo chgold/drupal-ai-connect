@@ -1,0 +1,8 @@
+administer ai connect:
+  title: 'Administer AI Connect'
+  description: 'Configure AI Connect settings, manage API keys, and control access'
+  restrict access: true
+
+use ai connect api:
+  title: 'Use AI Connect API'
+  description: 'Access the AI Connect API endpoints'

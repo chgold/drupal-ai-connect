@@ -1,0 +1,20 @@
+<?php
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+function ai_connect_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.ai_connect':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('AI Connect provides a WebMCP protocol bridge for connecting AI agents to your Drupal site.') . '</p>';
+      $output .= '<h3>' . t('Features') . '</h3>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('OAuth 2.0 authentication with JWT tokens') . '</li>';
+      $output .= '<li>' . t('RESTful API for AI agent operations') . '</li>';
+      $output .= '<li>' . t('Rate limiting and security controls') . '</li>';
+      $output .= '<li>' . t('WebMCP manifest generation') . '</li>';
+      $output .= '</ul>';
+      return $output;
+  }
+}
