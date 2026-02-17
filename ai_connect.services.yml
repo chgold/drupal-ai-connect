@@ -1,11 +1,11 @@
 services:
   ai_connect.auth:
     class: Drupal\ai_connect\Service\AuthService
-    arguments: ['@config.factory', '@entity_type.manager', '@password']
+    arguments: ['@config.factory', '@database', '@user.auth', '@entity_type.manager', '@request_stack']
 
   ai_connect.manifest:
     class: Drupal\ai_connect\Service\ManifestService
-    arguments: ['@config.factory', '@url_generator']
+    arguments: ['@request_stack']
 
   ai_connect.rate_limiter:
     class: Drupal\ai_connect\Service\RateLimiterService
