@@ -6,7 +6,6 @@
   "require": {
     "php": ">=7.4",
     "drupal/core": "^9 || ^10 || ^11",
-    "drupal/simple_oauth": "^5.0",
     "firebase/php-jwt": "^6.0"
   },
   "autoload": {
