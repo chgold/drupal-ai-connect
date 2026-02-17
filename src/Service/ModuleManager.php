@@ -3,6 +3,7 @@
 namespace Drupal\ai_connect\Service;
 
 use Drupal\ai_connect\Service\ManifestService;
+use Drupal\ai_connect\Module\CoreModule;
 
 class ModuleManager {
 
@@ -11,6 +12,8 @@ class ModuleManager {
 
   public function __construct(ManifestService $manifest_service) {
     $this->manifestService = $manifest_service;
+    // Auto-register the core Drupal module.
+    $this->registerModule(new CoreModule($manifest_service));
   }
 
   public function registerModule($moduleInstance) {
