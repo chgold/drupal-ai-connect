@@ -9,7 +9,7 @@ ai_connect.settings:
 ai_connect.manifest:
   path: '/api/ai-connect/v1/manifest'
   defaults:
-    _controller: '\Drupal\ai_connect\Controller\ManifestController::manifest'
+    _controller: '\Drupal\ai_connect\Controller\ManifestController::get'
   requirements:
     _access: 'TRUE'
 
