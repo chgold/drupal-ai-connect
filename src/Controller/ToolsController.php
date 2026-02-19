@@ -88,20 +88,20 @@ class ToolsController extends ControllerBase {
    */
   public function execute($tool_name, Request $request) {
     $authHeader = $request->headers->get('Authorization', '');
-    
+
     if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
       return new JsonResponse([
         'error' => 'Authorization header with Bearer token is required',
       ], 401);
     }
-    
+
     $tokenData = $this->authService->validateAccessToken($matches[1]);
     if (!$tokenData || empty($tokenData['user_id'])) {
       return new JsonResponse([
         'error' => 'Invalid or expired token',
       ], 401);
     }
-    
+
     $account = $this->entityTypeManager->getStorage('user')->load($tokenData['user_id']);
     if ($account) {
       $this->accountSwitcher->switchTo($account);

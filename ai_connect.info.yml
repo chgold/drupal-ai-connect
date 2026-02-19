@@ -9,6 +9,3 @@ dependencies:
   - drupal:rest
 
 configure: ai_connect.settings
-
-project: 'ai_connect'
-version: '1.0.0'

@@ -174,10 +174,16 @@ namespace Drupal\my_module\AIConnect;
 
 use Drupal\ai_connect\Module\ModuleBase;
 
+/**
+ *
+ */
 class MyModule extends ModuleBase {
-  
+
   protected $moduleName = 'mymodule';
-  
+
+  /**
+   *
+   */
   protected function registerTools() {
     $this->registerTool('myTool', [
       'description' => 'My custom tool',
@@ -189,10 +195,14 @@ class MyModule extends ModuleBase {
       ],
     ]);
   }
-  
+
+  /**
+   *
+   */
   public function execute_myTool($params) {
     return $this->success(['result' => 'data']);
   }
+
 }
 ```
 
@@ -208,7 +218,7 @@ Register in your module's services.yml and hook into AI Connect's module manager
 
 ## Configuration
 
-### Settings (`/admin/config/services/ai-connect`)
+### Settings (` / admin / config / services / ai - connect`)
 - **JWT Secret**: Secret key for token generation (64-char hex)
 - **Token Expiry**: Token lifetime in seconds (300-86400)
 - **Rate Limit Per Minute**: Max requests per minute (1-1000)
@@ -224,15 +234,20 @@ Register in your module's services.yml and hook into AI Connect's module manager
 
 ### firebase/php-jwt not found
 
-**Error:** `Class 'Firebase\JWT\JWT' not found`
+**Error:** `
+
+/**
+ *
+ */
+class 'Firebase\JWT\JWT' not found`
 
 **Fix:** Manually register the JWT library in Drupal's autoloader:
 
-1. Open `/vendor/composer/autoload_static.php`
+1. Open ` / vendor / composer / autoload_static . php`
 2. Find the `$prefixLengthsPsr4` array
 3. Add:
    ```php
-   'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+   'Firebase\\JWT\\' => [$vendorDir . '/firebase/php-jwt/src'],
    ```
 
 ### Tools return authentication errors
