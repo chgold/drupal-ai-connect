@@ -23,11 +23,28 @@ WebMCP protocol bridge for Drupal - enables AI agents to interact with your Drup
 
 ## Installation
 
-1. **Download and enable the module**:
+1. **Clone or download the module**:
+   ```bash
+   cd /path/to/drupal/modules/custom
+   git clone https://github.com/chgold/drupal-ai-connect.git ai_connect
+   cd ai_connect
+   ```
+
+2. **Install JWT dependency**:
    ```bash
    cd /path/to/drupal
    composer require firebase/php-jwt
+   ```
+   
+   **Important:** The JWT library must be manually registered in Drupal's autoloader. Add to `/vendor/composer/autoload_static.php`:
+   ```php
+   'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+   ```
+
+3. **Enable the module**:
+   ```bash
    drush en ai_connect
+   drush cr
    ```
 
 2. **Configure settings**:
@@ -202,6 +219,38 @@ Register in your module's services.yml and hook into AI Connect's module manager
 - `ai_connect_api_keys`: Stores persistent API keys
 - `ai_connect_rate_limits`: Tracks rate limit windows
 - `ai_connect_blocked_users`: Lists blocked users
+
+## Troubleshooting
+
+### firebase/php-jwt not found
+
+**Error:** `Class 'Firebase\JWT\JWT' not found`
+
+**Fix:** Manually register the JWT library in Drupal's autoloader:
+
+1. Open `/vendor/composer/autoload_static.php`
+2. Find the `$prefixLengthsPsr4` array
+3. Add:
+   ```php
+   'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+   ```
+
+### Tools return authentication errors
+
+**Error:** JWT validation fails or user context missing
+
+**Fix:** The `ToolsController` automatically switches to the authenticated user from the JWT token. Ensure:
+- JWT secret matches between config and auth requests
+- User exists in Drupal
+- User has "Use AI Connect API" permission
+
+### ModuleManager doesn't find CoreModule
+
+**Fix:** `CoreModule` is auto-registered in `ModuleManager::__construct()`. If you see this error after an update:
+```bash
+drush cr
+drush config:export
+```
 
 ## Development
 
