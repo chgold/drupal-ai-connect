@@ -12,5 +12,13 @@
     "psr-4": {
       "Drupal\\ai_connect\\": "src/"
     }
+  },
+  "config": {
+    "audit": {
+      "block-insecure": false
+    }
+  },
+  "require-dev": {
+    "mglaman/drupal-check": "*"
   }
 }

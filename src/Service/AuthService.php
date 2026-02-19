@@ -135,7 +135,7 @@ class AuthService {
         'user_id' => $userId,
         'api_key' => $apiKey,
         'name' => $name,
-        'scopes' => serialize($scopes),
+        'scopes' => json_encode($scopes),
         'is_active' => 1,
         'created' => time(),
       ])
@@ -167,7 +167,7 @@ class AuthService {
     return [
       'valid' => TRUE,
       'user_id' => $key['user_id'],
-      'scopes' => unserialize($key['scopes']),
+      'scopes' => json_decode($key['scopes'], TRUE) ?: [],
     ];
   }
 

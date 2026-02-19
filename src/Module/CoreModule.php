@@ -5,18 +5,51 @@ namespace Drupal\ai_connect\Module;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
+/**
+ * Core Drupal module for AI Connect.
+ */
 class CoreModule extends ModuleBase {
 
+  /**
+   * Module name.
+   *
+   * @var string
+   */
   protected $moduleName = 'drupal';
+
+  /**
+   * Database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
   protected $database;
+
+  /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
   protected $entityTypeManager;
 
-  public function __construct($manifestService, Connection $database = NULL, EntityTypeManagerInterface $entity_type_manager = NULL) {
+  /**
+   * Constructs a CoreModule object.
+   *
+   * @param \Drupal\ai_connect\Service\ManifestService $manifestService
+   *   The manifest service.
+   * @param \Drupal\Core\Database\Connection|null $database
+   *   The database connection.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface|null $entity_type_manager
+   *   The entity type manager.
+   */
+  public function __construct($manifestService, ?Connection $database = NULL, ?EntityTypeManagerInterface $entity_type_manager = NULL) {
     $this->database = $database ?? \Drupal::database();
     $this->entityTypeManager = $entity_type_manager ?? \Drupal::entityTypeManager();
     parent::__construct($manifestService);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   protected function registerTools() {
     $this->registerTool('searchNodes', [
       'description' => 'Search Drupal content nodes with filters',
@@ -99,7 +132,16 @@ class CoreModule extends ModuleBase {
     ]);
   }
 
-  public function execute_searchNodes($params) {
+  /**
+   * Executes searchNodes tool.
+   *
+   * @param array $params
+   *   Tool parameters.
+   *
+   * @return array
+   *   Tool result.
+   */
+  public function executeSearchNodes(array $params) {
     $query = $this->entityTypeManager->getStorage('node')->getQuery()
       ->condition('status', 1)
       ->accessCheck(FALSE)
@@ -125,7 +167,16 @@ class CoreModule extends ModuleBase {
     return $this->success($result);
   }
 
-  public function execute_getNode($params) {
+  /**
+   * Executes getNode tool.
+   *
+   * @param array $params
+   *   Tool parameters.
+   *
+   * @return array
+   *   Tool result.
+   */
+  public function executeGetNode(array $params) {
     $node = $this->entityTypeManager->getStorage('node')->load($params['node_id']);
 
     if (!$node) {
@@ -139,7 +190,16 @@ class CoreModule extends ModuleBase {
     return $this->success($this->formatNode($node));
   }
 
-  public function execute_searchComments($params) {
+  /**
+   * Executes searchComments tool.
+   *
+   * @param array $params
+   *   Tool parameters.
+   *
+   * @return array
+   *   Tool result.
+   */
+  public function executeSearchComments(array $params) {
     $query = $this->entityTypeManager->getStorage('comment')->getQuery()
       ->condition('status', 1)
       ->accessCheck(FALSE)
@@ -165,7 +225,16 @@ class CoreModule extends ModuleBase {
     return $this->success($result);
   }
 
-  public function execute_getComment($params) {
+  /**
+   * Executes getComment tool.
+   *
+   * @param array $params
+   *   Tool parameters.
+   *
+   * @return array
+   *   Tool result.
+   */
+  public function executeGetComment(array $params) {
     $comment = $this->entityTypeManager->getStorage('comment')->load($params['comment_id']);
 
     if (!$comment) {
@@ -179,7 +248,16 @@ class CoreModule extends ModuleBase {
     return $this->success($this->formatComment($comment));
   }
 
-  public function execute_getCurrentUser($params) {
+  /**
+   * Executes getCurrentUser tool.
+   *
+   * @param array $params
+   *   Tool parameters.
+   *
+   * @return array
+   *   Tool result.
+   */
+  public function executeGetCurrentUser(array $params) {
     $current_user = \Drupal::currentUser();
 
     if ($current_user->isAnonymous()) {
@@ -198,6 +276,15 @@ class CoreModule extends ModuleBase {
     ]);
   }
 
+  /**
+   * Formats a node for output.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node entity.
+   *
+   * @return array
+   *   Formatted node data.
+   */
   protected function formatNode($node) {
     $url = $node->toUrl('canonical', ['absolute' => TRUE])->toString();
 
@@ -214,6 +301,15 @@ class CoreModule extends ModuleBase {
     ];
   }
 
+  /**
+   * Formats a comment for output.
+   *
+   * @param \Drupal\comment\CommentInterface $comment
+   *   The comment entity.
+   *
+   * @return array
+   *   Formatted comment data.
+   */
   protected function formatComment($comment) {
     $url = $comment->toUrl('canonical', ['absolute' => TRUE])->toString();
 

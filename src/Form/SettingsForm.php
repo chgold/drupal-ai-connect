@@ -5,16 +5,28 @@ namespace Drupal\ai_connect\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
+/**
+ * Configuration form for AI Connect settings.
+ */
 class SettingsForm extends ConfigFormBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function getEditableConfigNames() {
     return ['ai_connect.settings'];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getFormId() {
     return 'ai_connect_settings_form';
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('ai_connect.settings');
 
@@ -67,12 +79,15 @@ class SettingsForm extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->configFactory()->getEditable('ai_connect.settings');
 
     if ($form_state->getValue('regenerate_secret')) {
       $config->set('jwt_secret', bin2hex(random_bytes(32)));
-      \Drupal::messenger()->addWarning($this->t('JWT secret has been regenerated. All existing tokens are now invalid.'));
+      $this->messenger()->addWarning($this->t('JWT secret has been regenerated. All existing tokens are now invalid.'));
     }
     else {
       $config->set('jwt_secret', $form_state->getValue('jwt_secret'));
