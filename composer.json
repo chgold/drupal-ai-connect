@@ -5,8 +5,11 @@
   "license": "GPL-2.0-or-later",
   "require": {
     "php": ">=7.4",
-    "drupal/core": "^9 || ^10 || ^11",
     "firebase/php-jwt": "^6.0"
+  },
+  "require-dev": {
+    "drupal/core": "^9 || ^10 || ^11",
+    "mglaman/drupal-check": "*"
   },
   "autoload": {
     "psr-4": {
@@ -17,8 +20,5 @@
     "audit": {
       "block-insecure": false
     }
-  },
-  "require-dev": {
-    "mglaman/drupal-check": "*"
   }
 }
