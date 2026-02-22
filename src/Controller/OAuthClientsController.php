@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\ai_connect\Controller\OAuthClientsController.
+ */
+
 namespace Drupal\ai_connect\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -7,51 +12,96 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Url;
 use Drupal\Core\Link;
+use Drupal\Core\Datetime\DateFormatterInterface;
 
-class OAuthClientsController extends ControllerBase {
+/**
+ * Controller for managing OAuth clients.
+ */
+class OAuthClientsController extends ControllerBase
+{
 
-  protected $database;
+    /**
+     * The database connection.
+     *
+     * @var \Drupal\Core\Database\Connection
+     */
+    protected $database;
 
-  public function __construct(Connection $database) {
-    $this->database = $database;
-  }
+    /**
+     * The date formatter service.
+     *
+     * @var \Drupal\Core\Datetime\DateFormatterInterface
+     */
+    protected $dateFormatter;
 
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('database')
-    );
-  }
+    /**
+     * Constructs an OAuthClientsController object.
+     *
+     * @param \Drupal\Core\Database\Connection             $database
+     *   The database connection.
+     * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+     *   The date formatter service.
+     */
+    public function __construct(Connection $database, DateFormatterInterface $date_formatter)
+    {
+        $this->database = $database;
+        $this->dateFormatter = $date_formatter;
+    }
 
-  public function listClients() {
-    $clients = $this->database->select('ai_connect_oauth_clients', 'c')
-      ->fields('c')
-      ->orderBy('created_at', 'DESC')
-      ->execute()
-      ->fetchAll();
+    /**
+     * Creates an instance of the controller.
+     *
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     *   The service container.
+     *
+     * @return static
+     *   The controller instance.
+     */
+    public static function create(ContainerInterface $container)
+    {
+        return new static(
+            $container->get('database'),
+            $container->get('date.formatter')
+        );
+    }
 
-    $header = [
-      $this->t('Client ID'),
-      $this->t('Name'),
-      $this->t('Scopes'),
-      $this->t('Created'),
-      $this->t('Operations'),
-    ];
+    /**
+     * Lists all OAuth clients with operations.
+     *
+     * Displays a table of all registered OAuth clients with their details,
+     * including client ID, name, scopes, creation date, and edit/delete links.
+     * Also shows the count of active tokens.
+     *
+     * @return array
+     *   A render array containing the clients table and statistics.
+     */
+    public function listClients()
+    {
+        $clients = $this->database->select('ai_connect_oauth_clients', 'c')
+            ->fields('c')
+            ->orderBy('created_at', 'DESC')
+            ->execute()
+            ->fetchAll();
 
-    $rows = [];
-    foreach ($clients as $client) {
-      $scopes = json_decode($client->allowed_scopes, TRUE);
-      $operations = [
-        Link::createFromRoute($this->t('Edit'), 'ai_connect.oauth_client_edit', ['client_id' => $client->id]),
-        Link::createFromRoute($this->t('Delete'), 'ai_connect.oauth_client_delete', ['client_id' => $client->id]),
-      ];
+        $header = [
+        $this->t('Client ID'),
+        $this->t('Name'),
+        $this->t('Scopes'),
+        $this->t('Created'),
+        $this->t('Operations'),
+        ];
 
-      $rows[] = [
-        $client->client_id,
-        $client->client_name,
-        implode(', ', $scopes),
-        \Drupal::service('date.formatter')->format($client->created_at, 'short'),
-        [
-          'data' => [
+        $rows = [];
+        foreach ($clients as $client) {
+            $scopes = json_decode($client->allowed_scopes, true);
+
+            $rows[] = [
+            $client->client_id,
+            $client->client_name,
+            implode(', ', $scopes),
+            $this->dateFormatter->format($client->created_at, 'short'),
+            [
+            'data' => [
             '#type' => 'operations',
             '#links' => [
               'edit' => [
@@ -63,64 +113,76 @@ class OAuthClientsController extends ControllerBase {
                 'url' => Url::fromRoute('ai_connect.oauth_client_delete', ['client_id' => $client->id]),
               ],
             ],
-          ],
-        ],
-      ];
-    }
+            ],
+            ],
+            ];
+        }
 
-    $build = [];
-    
-    $build['description'] = [
-      '#markup' => '<p>' . $this->t('Manage OAuth 2.0 clients that can access your Drupal site via the AI Connect API.') . '</p>',
-    ];
+        $build = [];
 
-    $build['add_link'] = [
-      '#type' => 'link',
-      '#title' => $this->t('Add OAuth Client'),
-      '#url' => Url::fromRoute('ai_connect.oauth_client_add'),
-      '#attributes' => [
+        $build['description'] = [
+        '#markup' => '<p>' . $this->t('Manage OAuth 2.0 clients that can access your Drupal site via the AI Connect API.') . '</p>',
+        ];
+
+        $build['add_link'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Add OAuth Client'),
+        '#url' => Url::fromRoute('ai_connect.oauth_client_add'),
+        '#attributes' => [
         'class' => ['button', 'button--primary', 'button--small'],
-      ],
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    ];
+        ],
+        '#prefix' => '<p>',
+        '#suffix' => '</p>',
+        ];
 
-    $build['table'] = [
-      '#type' => 'table',
-      '#header' => $header,
-      '#rows' => $rows,
-      '#empty' => $this->t('No OAuth clients found. <a href=":url">Add a client</a>.', [
-        ':url' => Url::fromRoute('ai_connect.oauth_client_add')->toString(),
-      ]),
-    ];
+        $build['table'] = [
+        '#type' => 'table',
+        '#header' => $header,
+        '#rows' => $rows,
+        '#empty' => $this->t(
+            'No OAuth clients found. <a href=":url">Add a client</a>.', [
+            ':url' => Url::fromRoute('ai_connect.oauth_client_add')->toString(),
+            ]
+        ),
+        ];
 
-    $active_tokens = $this->database->select('ai_connect_oauth_tokens', 't')
-      ->condition('revoked_at', NULL, 'IS NULL')
-      ->condition('expires_at', time(), '>')
-      ->countQuery()
-      ->execute()
-      ->fetchField();
+        $active_tokens = $this->database->select('ai_connect_oauth_tokens', 't')
+            ->condition('revoked_at', null, 'IS NULL')
+            ->condition('expires_at', time(), '>')
+            ->countQuery()
+            ->execute()
+            ->fetchField();
 
-    $build['stats'] = [
-      '#markup' => '<p><strong>' . $this->t('Active Tokens:') . '</strong> ' . $active_tokens . '</p>',
-    ];
+        $build['stats'] = [
+        '#markup' => '<p><strong>' . $this->t('Active Tokens:') . '</strong> ' . $active_tokens . '</p>',
+        ];
 
-    return $build;
-  }
-
-  public function deleteClient($client_id) {
-    $client = $this->database->select('ai_connect_oauth_clients', 'c')
-      ->fields('c')
-      ->condition('id', $client_id)
-      ->execute()
-      ->fetchObject();
-
-    if (!$client) {
-      $this->messenger()->addError($this->t('OAuth client not found.'));
-      return $this->redirect('ai_connect.oauth_clients');
+        return $build;
     }
 
-    return $this->formBuilder()->getForm('Drupal\ai_connect\Form\OAuthClientDeleteForm', $client);
-  }
+    /**
+     * Displays the delete confirmation form for an OAuth client.
+     *
+     * @param int $client_id
+     *   The OAuth client ID.
+     *
+     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
+     *   The delete confirmation form or a redirect response.
+     */
+    public function deleteClient($client_id)
+    {
+        $client = $this->database->select('ai_connect_oauth_clients', 'c')
+            ->fields('c')
+            ->condition('id', $client_id)
+            ->execute()
+            ->fetchObject();
+
+        if (!$client) {
+            $this->messenger()->addError($this->t('OAuth client not found.'));
+            return $this->redirect('ai_connect.oauth_clients');
+        }
+
+        return $this->formBuilder()->getForm('Drupal\ai_connect\Form\OAuthClientDeleteForm', $client);
+    }
 
 }
