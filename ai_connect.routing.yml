@@ -51,3 +51,35 @@ ai_connect.oauth_revoke:
   methods: [POST]
   requirements:
     _access: 'TRUE'
+
+ai_connect.oauth_clients:
+  path: '/admin/config/services/ai-connect/oauth-clients'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\OAuthClientsController::listClients'
+    _title: 'OAuth Clients'
+  requirements:
+    _permission: 'administer ai connect'
+
+ai_connect.oauth_client_add:
+  path: '/admin/config/services/ai-connect/oauth-clients/add'
+  defaults:
+    _form: '\Drupal\ai_connect\Form\OAuthClientForm'
+    _title: 'Add OAuth Client'
+  requirements:
+    _permission: 'administer ai connect'
+
+ai_connect.oauth_client_edit:
+  path: '/admin/config/services/ai-connect/oauth-clients/{client_id}/edit'
+  defaults:
+    _form: '\Drupal\ai_connect\Form\OAuthClientForm'
+    _title: 'Edit OAuth Client'
+  requirements:
+    _permission: 'administer ai connect'
+
+ai_connect.oauth_client_delete:
+  path: '/admin/config/services/ai-connect/oauth-clients/{client_id}/delete'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\OAuthClientsController::deleteClient'
+    _title: 'Delete OAuth Client'
+  requirements:
+    _permission: 'administer ai connect'

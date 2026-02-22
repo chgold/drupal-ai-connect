@@ -1,0 +1,13 @@
+ai_connect.settings:
+  title: 'AI Connect Settings'
+  description: 'Configure AI Connect module settings'
+  route_name: ai_connect.settings
+  parent: system.admin_config_services
+  weight: 10
+
+ai_connect.oauth_clients:
+  title: 'OAuth Clients'
+  description: 'Manage OAuth 2.0 clients'
+  route_name: ai_connect.oauth_clients
+  parent: ai_connect.settings
+  weight: 20
