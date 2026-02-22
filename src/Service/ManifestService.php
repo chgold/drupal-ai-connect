@@ -95,7 +95,7 @@ class ManifestService {
       ],
       'auth' => [
         'type' => 'bearer',
-        'login_url' => $baseUrl . '/api/ai-connect/auth/login',
+        'login_url' => $baseUrl . '/api/ai-connect/v1/auth/login',
         'description' => 'Direct authentication with Drupal username and password',
         'method' => 'POST',
         'body' => [
