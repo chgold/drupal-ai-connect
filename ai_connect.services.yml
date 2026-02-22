@@ -3,6 +3,10 @@ services:
     class: Drupal\ai_connect\Service\AuthService
     arguments: ['@config.factory', '@database', '@user.auth', '@entity_type.manager', '@request_stack']
 
+  ai_connect.oauth_service:
+    class: Drupal\ai_connect\Service\OAuthService
+    arguments: ['@database']
+
   ai_connect.manifest:
     class: Drupal\ai_connect\Service\ManifestService
     arguments: ['@request_stack']

@@ -1,0 +1,121 @@
+<div class="ai-connect-oauth-consent">
+  <div class="oauth-header">
+    <h1>{{ 'Authorize Application'|t }}</h1>
+  </div>
+
+  <div class="oauth-body">
+    <p><strong>{{ client.client_name }}</strong> {{ 'wants to access your account'|t }}</p>
+    
+    <div class="oauth-scopes">
+      <h3>{{ 'This application will be able to:'|t }}</h3>
+      <ul>
+        {% for scope in scopes %}
+          <li>
+            {% if scope == 'read' %}
+              {{ 'Read your content and settings'|t }}
+            {% elseif scope == 'write' %}
+              {{ 'Create and modify content'|t }}
+            {% elseif scope == 'delete' %}
+              {{ 'Delete content'|t }}
+            {% else %}
+              {{ scope }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="oauth-user-info">
+      <p>{{ 'You are logged in as'|t }} <strong>{{ user.getAccountName() }}</strong></p>
+    </div>
+
+    <form method="post" action="{{ request_uri }}">
+      <div class="oauth-actions">
+        <button type="submit" name="ai_connect_oauth_approve" value="1" class="button button--primary">
+          {{ 'Authorize'|t }}
+        </button>
+        <button type="submit" name="ai_connect_oauth_deny" value="1" class="button">
+          {{ 'Deny'|t }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.ai-connect-oauth-consent {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.oauth-header h1 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.oauth-scopes {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.oauth-scopes h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.oauth-scopes ul {
+  margin: 0;
+  padding-left: 25px;
+}
+
+.oauth-scopes li {
+  margin: 5px 0;
+}
+
+.oauth-user-info {
+  margin: 20px 0;
+  padding: 10px;
+  background: #e8f4f8;
+  border-left: 3px solid #0074D9;
+}
+
+.oauth-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.oauth-actions button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+}
+
+.button--primary {
+  background: #0074D9;
+  color: #fff;
+}
+
+.button--primary:hover {
+  background: #0056b3;
+}
+
+.button {
+  background: #ccc;
+  color: #333;
+}
+
+.button:hover {
+  background: #bbb;
+}
+</style>

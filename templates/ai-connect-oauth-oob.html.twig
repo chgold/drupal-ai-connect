@@ -1,0 +1,101 @@
+<div class="ai-connect-oauth-oob">
+  <div class="oob-header">
+    <h1>{{ 'Authorization Successful'|t }}</h1>
+  </div>
+
+  <div class="oob-body">
+    <p>{{ 'Copy this code and paste it into your application:'|t }}</p>
+    
+    <div class="oob-code">
+      <code id="authorization-code">{{ code }}</code>
+      <button onclick="copyCode()" class="button button--primary">{{ 'Copy Code'|t }}</button>
+    </div>
+
+    <div class="oob-instructions">
+      <p><strong>{{ 'Instructions:'|t }}</strong></p>
+      <ol>
+        <li>{{ 'Copy the code above'|t }}</li>
+        <li>{{ 'Return to your application'|t }}</li>
+        <li>{{ 'Paste the code when prompted'|t }}</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyCode() {
+  const code = document.getElementById('authorization-code').textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    alert('Code copied to clipboard!');
+  });
+}
+</script>
+
+<style>
+.ai-connect-oauth-oob {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.oob-header h1 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.oob-code {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.oob-code code {
+  display: block;
+  font-size: 18px;
+  font-family: monospace;
+  background: #fff;
+  padding: 15px;
+  border: 2px solid #0074D9;
+  border-radius: 4px;
+  word-break: break-all;
+  margin-bottom: 15px;
+}
+
+.oob-code button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  background: #0074D9;
+  color: #fff;
+}
+
+.oob-code button:hover {
+  background: #0056b3;
+}
+
+.oob-instructions {
+  margin: 20px 0;
+  padding: 15px;
+  background: #e8f4f8;
+  border-left: 3px solid #0074D9;
+  border-radius: 4px;
+}
+
+.oob-instructions ol {
+  margin: 10px 0 0 0;
+  padding-left: 25px;
+}
+
+.oob-instructions li {
+  margin: 5px 0;
+}
+</style>

@@ -94,13 +94,18 @@ class ManifestService {
         'description' => 'Drupal AI Connect API',
       ],
       'auth' => [
-        'type' => 'bearer',
-        'login_url' => $baseUrl . '/api/ai-connect/v1/auth/login',
-        'description' => 'Direct authentication with Drupal username and password',
-        'method' => 'POST',
-        'body' => [
-          'username' => 'Drupal username',
-          'password' => 'Drupal password',
+        'type' => 'oauth2',
+        'flow' => 'authorization_code',
+        'authorization_url' => $baseUrl . '/oauth/authorize',
+        'token_url' => $baseUrl . '/api/ai-connect/v1/oauth/token',
+        'revoke_url' => $baseUrl . '/api/ai-connect/v1/oauth/revoke',
+        'pkce_required' => TRUE,
+        'code_challenge_method' => 'S256',
+        'redirect_uri' => 'urn:ietf:wg:oauth:2.0:oob',
+        'scopes' => [
+          'read' => 'Read content and settings',
+          'write' => 'Create and modify content',
+          'delete' => 'Delete content',
         ],
       ],
       'usage' => [

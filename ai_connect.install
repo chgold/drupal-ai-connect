@@ -145,6 +145,184 @@ function ai_connect_schema() {
     ],
   ];
 
+  $schema['ai_connect_oauth_clients'] = [
+    'description' => 'OAuth 2.0 clients',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary key',
+      ],
+      'client_id' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'OAuth client ID',
+      ],
+      'client_name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Client name',
+      ],
+      'redirect_uris' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'JSON array of allowed redirect URIs',
+      ],
+      'allowed_scopes' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'JSON array of allowed scopes',
+      ],
+      'created_at' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Creation timestamp',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'client_id' => ['client_id'],
+    ],
+  ];
+
+  $schema['ai_connect_oauth_codes'] = [
+    'description' => 'OAuth 2.0 authorization codes',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary key',
+      ],
+      'code' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Authorization code',
+      ],
+      'client_id' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'OAuth client ID',
+      ],
+      'user_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'User ID',
+      ],
+      'redirect_uri' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+        'description' => 'Redirect URI',
+      ],
+      'code_challenge' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'PKCE code challenge',
+      ],
+      'code_challenge_method' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'PKCE code challenge method',
+      ],
+      'scopes' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'JSON array of granted scopes',
+      ],
+      'expires_at' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Expiration timestamp',
+      ],
+      'used_at' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Used timestamp',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'code' => ['code'],
+    ],
+    'indexes' => [
+      'expires_at' => ['expires_at'],
+    ],
+  ];
+
+  $schema['ai_connect_oauth_tokens'] = [
+    'description' => 'OAuth 2.0 access tokens',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary key',
+      ],
+      'token' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Access token',
+      ],
+      'refresh_token' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Refresh token',
+      ],
+      'client_id' => [
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'OAuth client ID',
+      ],
+      'user_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'User ID',
+      ],
+      'scopes' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'JSON array of granted scopes',
+      ],
+      'expires_at' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Access token expiration timestamp',
+      ],
+      'refresh_token_expires_at' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Refresh token expiration timestamp',
+      ],
+      'revoked_at' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Revocation timestamp',
+      ],
+      'created_at' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Creation timestamp',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'token' => ['token'],
+      'refresh_token' => ['refresh_token'],
+    ],
+    'indexes' => [
+      'expires_at' => ['expires_at'],
+      'user_id' => ['user_id'],
+    ],
+  ];
+
   return $schema;
 }
 
@@ -169,6 +347,26 @@ function ai_connect_install() {
   if (!$config->get('rate_limit_per_hour')) {
     $config->set('rate_limit_per_hour', 1000)->save();
   }
+
+  $database = \Drupal::database();
+  
+  $existing = $database->select('ai_connect_oauth_clients', 'c')
+    ->fields('c')
+    ->condition('client_id', 'ai-agent-default')
+    ->execute()
+    ->fetchObject();
+  
+  if (!$existing) {
+    $database->insert('ai_connect_oauth_clients')
+      ->fields([
+        'client_id' => 'ai-agent-default',
+        'client_name' => 'AI Agent Default Client',
+        'redirect_uris' => json_encode(['urn:ietf:wg:oauth:2.0:oob']),
+        'allowed_scopes' => json_encode(['read', 'write', 'delete']),
+        'created_at' => time(),
+      ])
+      ->execute();
+  }
 }
 
 /**
@@ -176,4 +374,27 @@ function ai_connect_install() {
  */
 function ai_connect_uninstall() {
   \Drupal::configFactory()->getEditable('ai_connect.settings')->delete();
+}
+
+/**
+ * Add OAuth 2.0 tables.
+ */
+function ai_connect_update_9001() {
+  $schema = ai_connect_schema();
+  
+  $database = \Drupal::database();
+  
+  if (!$database->schema()->tableExists('ai_connect_oauth_clients')) {
+    $database->schema()->createTable('ai_connect_oauth_clients', $schema['ai_connect_oauth_clients']);
+  }
+  
+  if (!$database->schema()->tableExists('ai_connect_oauth_codes')) {
+    $database->schema()->createTable('ai_connect_oauth_codes', $schema['ai_connect_oauth_codes']);
+  }
+  
+  if (!$database->schema()->tableExists('ai_connect_oauth_tokens')) {
+    $database->schema()->createTable('ai_connect_oauth_tokens', $schema['ai_connect_oauth_tokens']);
+  }
+  
+  return t('OAuth 2.0 tables created successfully.');
 }

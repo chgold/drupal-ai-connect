@@ -28,3 +28,26 @@ ai_connect.tool_execute:
   methods: [POST]
   requirements:
     _access: 'TRUE'
+
+ai_connect.oauth_authorize:
+  path: '/oauth/authorize'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\OAuthController::authorize'
+  requirements:
+    _access: 'TRUE'
+
+ai_connect.oauth_token:
+  path: '/api/ai-connect/v1/oauth/token'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\OAuthController::token'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+ai_connect.oauth_revoke:
+  path: '/api/ai-connect/v1/oauth/revoke'
+  defaults:
+    _controller: '\Drupal\ai_connect\Controller\OAuthController::revoke'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
