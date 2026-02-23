@@ -349,13 +349,13 @@ function ai_connect_install() {
   }
 
   $database = \Drupal::database();
-  
+
   $existing = $database->select('ai_connect_oauth_clients', 'c')
     ->fields('c')
     ->condition('client_id', 'ai-agent-default')
     ->execute()
     ->fetchObject();
-  
+
   if (!$existing) {
     $database->insert('ai_connect_oauth_clients')
       ->fields([
@@ -381,20 +381,20 @@ function ai_connect_uninstall() {
  */
 function ai_connect_update_9001() {
   $schema = ai_connect_schema();
-  
+
   $database = \Drupal::database();
-  
+
   if (!$database->schema()->tableExists('ai_connect_oauth_clients')) {
     $database->schema()->createTable('ai_connect_oauth_clients', $schema['ai_connect_oauth_clients']);
   }
-  
+
   if (!$database->schema()->tableExists('ai_connect_oauth_codes')) {
     $database->schema()->createTable('ai_connect_oauth_codes', $schema['ai_connect_oauth_codes']);
   }
-  
+
   if (!$database->schema()->tableExists('ai_connect_oauth_tokens')) {
     $database->schema()->createTable('ai_connect_oauth_tokens', $schema['ai_connect_oauth_tokens']);
   }
-  
+
   return t('OAuth 2.0 tables created successfully.');
 }

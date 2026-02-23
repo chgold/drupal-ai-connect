@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * OAuth client add/edit form.
- */
-
 namespace Drupal\ai_connect\Form;
 
+use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -18,186 +14,179 @@ use Drupal\Core\Database\Connection;
  * Allows administrators to create and modify OAuth 2.0 client configurations,
  * including client ID, name, redirect URIs, and allowed scopes.
  */
-class OAuthClientForm extends FormBase
-{
+class OAuthClientForm extends FormBase {
 
-    /**
-     * The database connection.
-     *
-     * @var \Drupal\Core\Database\Connection
-     */
-    protected $database;
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
 
-    /**
-     * Constructs an OAuthClientForm object.
-     *
-     * @param \Drupal\Core\Database\Connection $database
-     *   The database connection.
-     */
-    public function __construct(Connection $database)
-    {
-        $this->database = $database;
+  /**
+   * Constructs an OAuthClientForm object.
+   *
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
+   */
+  public function __construct(Connection $database) {
+    $this->database = $database;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+          $container->get('database')
+      );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
+    return 'ai_connect_oauth_client_form';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state, $client_id = NULL) {
+    $client = NULL;
+
+    if ($client_id) {
+      $client = $this->database->select('ai_connect_oauth_clients', 'c')
+        ->fields('c')
+        ->condition('id', $client_id)
+        ->execute()
+        ->fetchObject();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function create(ContainerInterface $container)
-    {
-        return new static(
-            $container->get('database')
-        );
-    }
+    $form['client_id'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Client ID'),
+      '#required' => TRUE,
+      '#default_value' => $client ? $client->client_id : '',
+      '#disabled' => $client ? TRUE : FALSE,
+      '#description' => $this->t('Unique identifier for this OAuth client.'),
+    ];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFormId()
-    {
-        return 'ai_connect_oauth_client_form';
-    }
+    $form['client_name'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Client Name'),
+      '#required' => TRUE,
+      '#default_value' => $client ? $client->client_name : '',
+      '#description' => $this->t('Human-readable name for this client.'),
+    ];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(array $form, FormStateInterface $form_state, $client_id = null)
-    {
-        $client = null;
-    
-        if ($client_id) {
-            $client = $this->database->select('ai_connect_oauth_clients', 'c')
-                ->fields('c')
-                ->condition('id', $client_id)
-                ->execute()
-                ->fetchObject();
-        }
+    $redirect_uris = $client ? json_decode($client->redirect_uris, TRUE) : ['urn:ietf:wg:oauth:2.0:oob'];
+    $form['redirect_uris'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Redirect URIs'),
+      '#required' => TRUE,
+      '#default_value' => implode("\n", $redirect_uris),
+      '#description' => $this->t('One URI per line. Use urn:ietf:wg:oauth:2.0:oob for out-of-band flow.'),
+    ];
 
-        $form['client_id'] = [
-        '#type' => 'textfield',
-        '#title' => $this->t('Client ID'),
-        '#required' => true,
-        '#default_value' => $client ? $client->client_id : '',
-        '#disabled' => $client ? true : false,
-        '#description' => $this->t('Unique identifier for this OAuth client.'),
-        ];
-
-        $form['client_name'] = [
-        '#type' => 'textfield',
-        '#title' => $this->t('Client Name'),
-        '#required' => true,
-        '#default_value' => $client ? $client->client_name : '',
-        '#description' => $this->t('Human-readable name for this client.'),
-        ];
-
-        $redirect_uris = $client ? json_decode($client->redirect_uris, true) : ['urn:ietf:wg:oauth:2.0:oob'];
-        $form['redirect_uris'] = [
-        '#type' => 'textarea',
-        '#title' => $this->t('Redirect URIs'),
-        '#required' => true,
-        '#default_value' => implode("\n", $redirect_uris),
-        '#description' => $this->t('One URI per line. Use urn:ietf:wg:oauth:2.0:oob for out-of-band flow.'),
-        ];
-
-        $allowed_scopes = $client ? json_decode($client->allowed_scopes, true) : ['read', 'write'];
-        $form['allowed_scopes'] = [
-        '#type' => 'checkboxes',
-        '#title' => $this->t('Allowed Scopes'),
-        '#options' => [
+    $allowed_scopes = $client ? json_decode($client->allowed_scopes, TRUE) : ['read', 'write'];
+    $form['allowed_scopes'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Allowed Scopes'),
+      '#options' => [
         'read' => $this->t('Read - View content and settings'),
         'write' => $this->t('Write - Create and modify content'),
         'delete' => $this->t('Delete - Remove content'),
-        ],
-        '#default_value' => $allowed_scopes,
-        '#description' => $this->t('Permissions this client can request.'),
-        ];
+      ],
+      '#default_value' => $allowed_scopes,
+      '#description' => $this->t('Permissions this client can request.'),
+    ];
 
-        $form['id'] = [
-        '#type' => 'hidden',
-        '#value' => $client ? $client->id : null,
-        ];
+    $form['id'] = [
+      '#type' => 'hidden',
+      '#value' => $client ? $client->id : NULL,
+    ];
 
-        $form['actions'] = [
-        '#type' => 'actions',
-        ];
+    $form['actions'] = [
+      '#type' => 'actions',
+    ];
 
-        $form['actions']['submit'] = [
-        '#type' => 'submit',
-        '#value' => $client ? $this->t('Update Client') : $this->t('Create Client'),
-        '#button_type' => 'primary',
-        ];
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $client ? $this->t('Update Client') : $this->t('Create Client'),
+      '#button_type' => 'primary',
+    ];
 
-        $form['actions']['cancel'] = [
-        '#type' => 'link',
-        '#title' => $this->t('Cancel'),
-        '#url' => \Drupal\Core\Url::fromRoute('ai_connect.oauth_clients'),
-        '#attributes' => ['class' => ['button']],
-        ];
+    $form['actions']['cancel'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Cancel'),
+      '#url' => Url::fromRoute('ai_connect.oauth_clients'),
+      '#attributes' => ['class' => ['button']],
+    ];
 
-        return $form;
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $client_id = $form_state->getValue('client_id');
+    $id = $form_state->getValue('id');
+
+    $existing = $this->database->select('ai_connect_oauth_clients', 'c')
+      ->fields('c', ['id'])
+      ->condition('client_id', $client_id)
+      ->execute()
+      ->fetchField();
+
+    if ($existing && (!$id || $existing != $id)) {
+      $form_state->setErrorByName('client_id', $this->t('A client with this ID already exists.'));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function validateForm(array &$form, FormStateInterface $form_state)
-    {
-        $client_id = $form_state->getValue('client_id');
-        $id = $form_state->getValue('id');
+    $redirect_uris = $form_state->getValue('redirect_uris');
+    $uris = array_filter(array_map('trim', explode("\n", $redirect_uris)));
 
-        $existing = $this->database->select('ai_connect_oauth_clients', 'c')
-            ->fields('c', ['id'])
-            ->condition('client_id', $client_id)
-            ->execute()
-            ->fetchField();
+    if (empty($uris)) {
+      $form_state->setErrorByName('redirect_uris', $this->t('At least one redirect URI is required.'));
+    }
+  }
 
-        if ($existing && (!$id || $existing != $id)) {
-            $form_state->setErrorByName('client_id', $this->t('A client with this ID already exists.'));
-        }
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $redirect_uris = array_filter(array_map('trim', explode("\n", $form_state->getValue('redirect_uris'))));
+    $allowed_scopes = array_values(array_filter($form_state->getValue('allowed_scopes')));
 
-        $redirect_uris = $form_state->getValue('redirect_uris');
-        $uris = array_filter(array_map('trim', explode("\n", $redirect_uris)));
-    
-        if (empty($uris)) {
-            $form_state->setErrorByName('redirect_uris', $this->t('At least one redirect URI is required.'));
-        }
+    $fields = [
+      'client_id' => $form_state->getValue('client_id'),
+      'client_name' => $form_state->getValue('client_name'),
+      'redirect_uris' => json_encode($redirect_uris),
+      'allowed_scopes' => json_encode($allowed_scopes),
+    ];
+
+    $id = $form_state->getValue('id');
+
+    if ($id) {
+      $this->database->update('ai_connect_oauth_clients')
+        ->fields($fields)
+        ->condition('id', $id)
+        ->execute();
+
+      $this->messenger()->addStatus($this->t('OAuth client updated successfully.'));
+    }
+    else {
+      $fields['created_at'] = time();
+
+      $this->database->insert('ai_connect_oauth_clients')
+        ->fields($fields)
+        ->execute();
+
+      $this->messenger()->addStatus($this->t('OAuth client created successfully.'));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function submitForm(array &$form, FormStateInterface $form_state)
-    {
-        $redirect_uris = array_filter(array_map('trim', explode("\n", $form_state->getValue('redirect_uris'))));
-        $allowed_scopes = array_values(array_filter($form_state->getValue('allowed_scopes')));
-
-        $fields = [
-        'client_id' => $form_state->getValue('client_id'),
-        'client_name' => $form_state->getValue('client_name'),
-        'redirect_uris' => json_encode($redirect_uris),
-        'allowed_scopes' => json_encode($allowed_scopes),
-        ];
-
-        $id = $form_state->getValue('id');
-
-        if ($id) {
-            $this->database->update('ai_connect_oauth_clients')
-                ->fields($fields)
-                ->condition('id', $id)
-                ->execute();
-
-            $this->messenger()->addStatus($this->t('OAuth client updated successfully.'));
-        }
-        else {
-            $fields['created_at'] = time();
-      
-            $this->database->insert('ai_connect_oauth_clients')
-                ->fields($fields)
-                ->execute();
-
-            $this->messenger()->addStatus($this->t('OAuth client created successfully.'));
-        }
-
-        $form_state->setRedirect('ai_connect.oauth_clients');
-    }
+    $form_state->setRedirect('ai_connect.oauth_clients');
+  }
 
 }

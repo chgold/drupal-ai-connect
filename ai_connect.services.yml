@@ -5,7 +5,7 @@ services:
 
   ai_connect.oauth_service:
     class: Drupal\ai_connect\Service\OAuthService
-    arguments: ['@database']
+    arguments: ['@database', '@logger.factory']
 
   ai_connect.manifest:
     class: Drupal\ai_connect\Service\ManifestService
