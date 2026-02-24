@@ -263,7 +263,7 @@ function ai_connect_schema() {
         'not null' => TRUE,
         'description' => 'Primary key',
       ],
-      'token' => [
+      'access_token' => [
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
@@ -291,7 +291,7 @@ function ai_connect_schema() {
         'not null' => TRUE,
         'description' => 'JSON array of granted scopes',
       ],
-      'expires_at' => [
+      'access_token_expires_at' => [
         'type' => 'int',
         'not null' => TRUE,
         'description' => 'Access token expiration timestamp',
@@ -314,11 +314,11 @@ function ai_connect_schema() {
     ],
     'primary key' => ['id'],
     'unique keys' => [
-      'token' => ['token'],
+      'access_token' => ['access_token'],
       'refresh_token' => ['refresh_token'],
     ],
     'indexes' => [
-      'expires_at' => ['expires_at'],
+      'access_token_expires_at' => ['access_token_expires_at'],
       'user_id' => ['user_id'],
     ],
   ];
