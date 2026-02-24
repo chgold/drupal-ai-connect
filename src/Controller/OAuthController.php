@@ -105,6 +105,9 @@ class OAuthController extends ControllerBase {
       return $this->sendError('unsupported_response_type', 'Only authorization code flow is supported');
     }
 
+    // Auto-register client if it doesn't exist (like WordPress).
+    $this->oauthService->autoRegisterClient($client_id, $redirect_uri, $scope);
+
     if (!$this->oauthService->validateClient($client_id)) {
       return $this->sendError('invalid_client', 'Invalid client_id');
     }

@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountSwitcherInterface;
 use Drupal\ai_connect\Service\ModuleManager;
 use Drupal\ai_connect\Service\AuthService;
+use Drupal\ai_connect\Service\OAuthService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +32,13 @@ class ToolsController extends ControllerBase {
   protected $authService;
 
   /**
+   * The OAuth service.
+   *
+   * @var \Drupal\ai_connect\Service\OAuthService
+   */
+  protected $oauthService;
+
+  /**
    * The entity type manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -51,14 +59,17 @@ class ToolsController extends ControllerBase {
    *   The module manager service.
    * @param \Drupal\ai_connect\Service\AuthService $auth_service
    *   The auth service.
+   * @param \Drupal\ai_connect\Service\OAuthService $oauth_service
+   *   The OAuth service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Session\AccountSwitcherInterface $account_switcher
    *   The account switcher service.
    */
-  public function __construct(ModuleManager $module_manager, AuthService $auth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher) {
+  public function __construct(ModuleManager $module_manager, AuthService $auth_service, OAuthService $oauth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher) {
     $this->moduleManager = $module_manager;
     $this->authService = $auth_service;
+    $this->oauthService = $oauth_service;
     $this->entityTypeManager = $entity_type_manager;
     $this->accountSwitcher = $account_switcher;
   }
@@ -70,6 +81,7 @@ class ToolsController extends ControllerBase {
     return new static(
           $container->get('ai_connect.module_manager'),
           $container->get('ai_connect.auth'),
+          $container->get('ai_connect.oauth_service'),
           $container->get('entity_type.manager'),
           $container->get('account_switcher')
       );
@@ -97,13 +109,12 @@ class ToolsController extends ControllerBase {
         );
     }
 
-    $tokenData = $this->authService->validateAccessToken($matches[1]);
-    if (!$tokenData || empty($tokenData['user_id'])) {
-      return new JsonResponse(
-            [
-              'error' => 'Invalid or expired token',
-            ], 401
-        );
+    $token = $matches[1];
+
+    $tokenData = $this->oauthService->validateToken($token);
+
+    if (isset($tokenData['error'])) {
+      return new JsonResponse(['error' => $tokenData['error_description'] ?? 'Invalid or expired token'], 401);
     }
 
     $account = $this->entityTypeManager->getStorage('user')->load($tokenData['user_id']);

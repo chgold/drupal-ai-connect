@@ -101,7 +101,10 @@ class ManifestService {
         'revoke_url' => $baseUrl . '/api/ai-connect/v1/oauth/revoke',
         'pkce_required' => TRUE,
         'code_challenge_method' => 'S256',
-        'redirect_uri' => 'urn:ietf:wg:oauth:2.0:oob',
+        'redirect_uris' => [
+          'http://localhost/callback',
+          'urn:ietf:wg:oauth:2.0:oob',
+        ],
         'scopes' => [
           'read' => 'Read content and settings',
           'write' => 'Create and modify content',

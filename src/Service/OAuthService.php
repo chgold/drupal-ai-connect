@@ -152,16 +152,20 @@ class OAuthService {
       return ['error' => 'invalid_grant', 'error_description' => 'PKCE verification failed'];
     }
 
-    $this->database->update('ai_connect_oauth_codes')
-      ->fields(['used_at' => time()])
-      ->condition('id', $auth_code->id)
-      ->execute();
-
     $token = $this->createAccessToken(
       $auth_code->client_id,
       $auth_code->user_id,
       json_decode($auth_code->scopes, TRUE)
     );
+
+    if (!$token) {
+      return ['error' => 'server_error', 'error_description' => 'Failed to create access token'];
+    }
+
+    $this->database->update('ai_connect_oauth_codes')
+      ->fields(['used_at' => time()])
+      ->condition('id', $auth_code->id)
+      ->execute();
 
     return $token;
   }
@@ -188,12 +192,12 @@ class OAuthService {
     try {
       $this->database->insert('ai_connect_oauth_tokens')
         ->fields([
-          'token' => $token,
+          'access_token' => $token,
           'refresh_token' => $refresh_token,
           'client_id' => $client_id,
           'user_id' => $user_id,
           'scopes' => json_encode($scopes),
-          'expires_at' => $expires_at,
+          'access_token_expires_at' => $expires_at,
           'refresh_token_expires_at' => $refresh_token_expires_at,
           'created_at' => time(),
         ])
@@ -226,7 +230,7 @@ class OAuthService {
   public function validateToken($token) {
     $token_data = $this->database->select('ai_connect_oauth_tokens', 't')
       ->fields('t')
-      ->condition('token', $token)
+      ->condition('access_token', $token)
       ->execute()
       ->fetchObject();
 
@@ -238,7 +242,7 @@ class OAuthService {
       return ['error' => 'invalid_token', 'error_description' => 'Token has been revoked'];
     }
 
-    if ($token_data->expires_at < time()) {
+    if ($token_data->access_token_expires_at < time()) {
       return ['error' => 'invalid_token', 'error_description' => 'Token expired'];
     }
 
@@ -310,7 +314,7 @@ class OAuthService {
     try {
       $this->database->update('ai_connect_oauth_tokens')
         ->fields(['revoked_at' => time()])
-        ->condition('token', $token)
+        ->condition('access_token', $token)
         ->execute();
       return TRUE;
     }
@@ -344,6 +348,67 @@ class OAuthService {
   }
 
   /**
+   * Auto-registers an OAuth client if it doesn't exist.
+   *
+   * @param string $client_id
+   *   The client ID.
+   * @param string $redirect_uri
+   *   The redirect URI.
+   * @param string $scope
+   *   The requested scopes.
+   */
+  public function autoRegisterClient($client_id, $redirect_uri, $scope) {
+    $existing = $this->database->select('ai_connect_oauth_clients', 'c')
+      ->fields('c')
+      ->condition('client_id', $client_id)
+      ->execute()
+      ->fetchObject();
+
+    $scopes = !empty($scope) ? str_replace(' ', ',', $scope) : 'read,write';
+
+    if ($existing) {
+      $redirect_uris = json_decode($existing->redirect_uris, TRUE);
+
+      if (!in_array($redirect_uri, $redirect_uris)) {
+        $redirect_uris[] = $redirect_uri;
+
+        $this->database->update('ai_connect_oauth_clients')
+          ->fields(['redirect_uris' => json_encode($redirect_uris)])
+          ->condition('client_id', $client_id)
+          ->execute();
+
+        $this->logger->info('Added redirect_uri to OAuth client @client_id: @uri', [
+          '@client_id' => $client_id,
+          '@uri' => $redirect_uri,
+        ]);
+      }
+
+      return;
+    }
+
+    try {
+      $this->database->insert('ai_connect_oauth_clients')
+        ->fields([
+          'client_id' => $client_id,
+          'client_name' => 'Auto-registered: ' . $client_id,
+          'redirect_uris' => json_encode([$redirect_uri]),
+          'allowed_scopes' => json_encode(explode(',', $scopes)),
+          'created_at' => time(),
+        ])
+        ->execute();
+
+      $this->logger->info('Auto-registered OAuth client: @client_id', [
+        '@client_id' => $client_id,
+      ]);
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Failed to auto-register OAuth client: @error', [
+        '@error' => $e->getMessage(),
+      ]);
+    }
+  }
+
+  /**
    * Validates a client ID.
    *
    * @param string $client_id
@@ -374,6 +439,18 @@ class OAuthService {
    *   TRUE if the redirect URI is valid for the client, FALSE otherwise.
    */
   public function validateRedirectUri($client_id, $redirect_uri) {
+    if ($redirect_uri === 'urn:ietf:wg:oauth:2.0:oob') {
+      return TRUE;
+    }
+
+    $parsed = parse_url($redirect_uri);
+    if ($parsed && isset($parsed['scheme']) && $parsed['scheme'] === 'http') {
+      $host = $parsed['host'] ?? '';
+      if ($host === 'localhost' || $host === '127.0.0.1' || $host === '[::1]') {
+        return TRUE;
+      }
+    }
+
     $client = $this->database->select('ai_connect_oauth_clients', 'c')
       ->fields('c', ['redirect_uris'])
       ->condition('client_id', $client_id)
