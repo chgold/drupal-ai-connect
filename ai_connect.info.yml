@@ -2,6 +2,7 @@ name: 'AI Connect'
 type: module
 description: 'WebMCP Protocol Bridge - Connect AI agents to your Drupal site using industry-standard authentication'
 core_version_requirement: ^9 || ^10 || ^11
+version: '1.0.0'
 package: 'AI'
 
 dependencies:
