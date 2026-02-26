@@ -118,13 +118,20 @@ class ToolsController extends ControllerBase {
     }
 
     $account = $this->entityTypeManager->getStorage('user')->load($tokenData['user_id']);
-    if ($account) {
-      $this->accountSwitcher->switchTo($account);
+    if (!$account || $account->isBlocked()) {
+      return new JsonResponse(
+            [
+              'error' => 'User account not found or blocked',
+            ], 403
+        );
     }
+
+    $this->accountSwitcher->switchTo($account);
 
     $data = json_decode($request->getContent(), TRUE);
 
     if (empty($tool_name)) {
+      $this->accountSwitcher->switchBack();
       return new JsonResponse(
             [
               'error' => 'Tool name is required',
@@ -133,6 +140,9 @@ class ToolsController extends ControllerBase {
     }
 
     $result = $this->moduleManager->executeTool($tool_name, $data ?? []);
+
+    // Always switch back to previous user context.
+    $this->accountSwitcher->switchBack();
 
     if (isset($result['success']) && $result['success'] === FALSE) {
       $code = 400;
