@@ -49,6 +49,54 @@ The AI agent will handle the rest - OAuth authorization, API connection, and too
 
 ---
 
+## 👥 For Site Members (End Users)
+
+**Your site administrator has enabled AI Connect - here's how to use it:**
+
+### Simple Instructions
+
+1. **Choose your AI assistant** - Works with Claude (desktop app), ChatGPT, or any AI that supports OAuth
+
+2. **Tell the AI to connect:**
+   ```
+   Connect to my Drupal site: https://yoursite.com
+   ```
+
+3. **Click the authorization link** - The AI will show you a link to click
+
+4. **Log in** - Use your normal site username and password
+
+5. **Click "Approve"** - You'll see a screen asking permission - click the button
+
+6. **Copy the code** - You'll see a code on screen - copy it
+
+7. **Paste it back to the AI** - The AI will ask for the code - paste it
+
+8. **Done!** - The AI can now help you with your site content
+
+### What Can the AI Do?
+
+The AI can ONLY do what YOU can do on the site:
+
+✅ **If you can see it** - AI can read it  
+✅ **If you can edit it** - AI can edit it  
+❌ **If you can't access it** - AI can't access it either
+
+**Your permissions are respected!** The AI works as YOU, with YOUR account and YOUR permissions.
+
+### Common Questions
+
+**Q: Is it safe?**  
+A: Yes! The AI uses the same security as Google, Facebook, and GitHub (OAuth 2.0). Your password stays private.
+
+**Q: Can I revoke access?**  
+A: Yes! Contact your site admin, or just change your password.
+
+**Q: What if I'm not comfortable?**  
+A: Don't use it! This is completely optional.
+
+---
+
 ## 🔐 OAuth 2.0 Authentication Guide
 
 ### How It Works
@@ -512,17 +560,6 @@ Configure in: **Configuration → Web Services → AI Connect** (`/admin/config/
 
 ---
 
-### Routes Not Found (404)
-
-**Solution:**
-```bash
-drush cr
-# Or via Admin UI:
-# Configuration → Development → Performance → Clear all caches
-```
-
----
-
 ### OAuth Tables Don't Exist
 
 **Error:** `Table 'drupal.ai_connect_oauth_clients' doesn't exist`
@@ -636,6 +673,8 @@ ai_connect/
 ---
 
 ## 💬 We Need Your Feedback!
+
+**This is a first release!** We've built the foundation with 7 core tools, but we need YOUR input to know what to build next.
 
 Help us build what YOU need:
 

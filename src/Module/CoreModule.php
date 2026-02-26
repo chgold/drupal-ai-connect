@@ -144,7 +144,7 @@ class CoreModule extends ModuleBase {
   public function executeSearchNodes(array $params) {
     $query = $this->entityTypeManager->getStorage('node')->getQuery()
       ->condition('status', 1)
-      ->accessCheck(FALSE)
+      ->accessCheck(TRUE)
       ->sort('created', 'DESC')
       ->range(0, $params['limit'] ?? 10);
 
@@ -183,8 +183,9 @@ class CoreModule extends ModuleBase {
       return $this->error('not_found', 'Node not found');
     }
 
-    if (!$node->isPublished()) {
-      return $this->error('not_accessible', 'Node is not published');
+    // Check if current user has access to view this node.
+    if (!$node->access('view')) {
+      return $this->error('access_denied', 'You do not have permission to view this node');
     }
 
     return $this->success($this->formatNode($node));
@@ -202,7 +203,7 @@ class CoreModule extends ModuleBase {
   public function executeSearchComments(array $params) {
     $query = $this->entityTypeManager->getStorage('comment')->getQuery()
       ->condition('status', 1)
-      ->accessCheck(FALSE)
+      ->accessCheck(TRUE)
       ->sort('created', 'DESC')
       ->range(0, $params['limit'] ?? 10);
 
@@ -241,8 +242,9 @@ class CoreModule extends ModuleBase {
       return $this->error('not_found', 'Comment not found');
     }
 
-    if (!$comment->isPublished()) {
-      return $this->error('not_accessible', 'Comment is not published');
+    // Check if current user has access to view this comment.
+    if (!$comment->access('view')) {
+      return $this->error('access_denied', 'You do not have permission to view this comment');
     }
 
     return $this->success($this->formatComment($comment));
