@@ -332,14 +332,6 @@ function ai_connect_schema() {
 function ai_connect_install() {
   $config = \Drupal::configFactory()->getEditable('ai_connect.settings');
 
-  if (!$config->get('jwt_secret')) {
-    $config->set('jwt_secret', bin2hex(random_bytes(32)))->save();
-  }
-
-  if (!$config->get('token_expiry')) {
-    $config->set('token_expiry', 3600)->save();
-  }
-
   if (!$config->get('rate_limit_per_minute')) {
     $config->set('rate_limit_per_minute', 50)->save();
   }

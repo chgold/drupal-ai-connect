@@ -6,7 +6,6 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountSwitcherInterface;
 use Drupal\ai_connect\Service\ModuleManager;
-use Drupal\ai_connect\Service\AuthService;
 use Drupal\ai_connect\Service\OAuthService;
 use Drupal\ai_connect\Service\RateLimiterService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,13 +23,6 @@ class ToolsController extends ControllerBase {
    * @var \Drupal\ai_connect\Service\ModuleManager
    */
   protected $moduleManager;
-
-  /**
-   * The auth service.
-   *
-   * @var \Drupal\ai_connect\Service\AuthService
-   */
-  protected $authService;
 
   /**
    * The OAuth service.
@@ -65,8 +57,6 @@ class ToolsController extends ControllerBase {
    *
    * @param \Drupal\ai_connect\Service\ModuleManager $module_manager
    *   The module manager service.
-   * @param \Drupal\ai_connect\Service\AuthService $auth_service
-   *   The auth service.
    * @param \Drupal\ai_connect\Service\OAuthService $oauth_service
    *   The OAuth service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -76,9 +66,8 @@ class ToolsController extends ControllerBase {
    * @param \Drupal\ai_connect\Service\RateLimiterService $rate_limiter
    *   The rate limiter service.
    */
-  public function __construct(ModuleManager $module_manager, AuthService $auth_service, OAuthService $oauth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher, RateLimiterService $rate_limiter) {
+  public function __construct(ModuleManager $module_manager, OAuthService $oauth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher, RateLimiterService $rate_limiter) {
     $this->moduleManager = $module_manager;
-    $this->authService = $auth_service;
     $this->oauthService = $oauth_service;
     $this->entityTypeManager = $entity_type_manager;
     $this->accountSwitcher = $account_switcher;
@@ -91,7 +80,6 @@ class ToolsController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
           $container->get('ai_connect.module_manager'),
-          $container->get('ai_connect.auth'),
           $container->get('ai_connect.oauth_service'),
           $container->get('entity_type.manager'),
           $container->get('account_switcher'),

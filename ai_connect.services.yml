@@ -1,8 +1,4 @@
 services:
-  ai_connect.auth:
-    class: Drupal\ai_connect\Service\AuthService
-    arguments: ['@config.factory', '@database', '@user.auth', '@entity_type.manager', '@request_stack']
-
   ai_connect.oauth_service:
     class: Drupal\ai_connect\Service\OAuthService
     arguments: ['@database', '@logger.factory']

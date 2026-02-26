@@ -13,14 +13,6 @@ ai_connect.manifest:
   requirements:
     _access: 'TRUE'
 
-ai_connect.auth_login:
-  path: '/api/ai-connect/v1/auth/login'
-  defaults:
-    _controller: '\Drupal\ai_connect\Controller\AuthController::login'
-  methods: [POST]
-  requirements:
-    _access: 'TRUE'
-
 ai_connect.tool_execute:
   path: '/api/ai-connect/v1/tools/{tool_name}'
   defaults:
