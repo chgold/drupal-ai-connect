@@ -8,6 +8,7 @@ use Drupal\Core\Session\AccountSwitcherInterface;
 use Drupal\ai_connect\Service\ModuleManager;
 use Drupal\ai_connect\Service\AuthService;
 use Drupal\ai_connect\Service\OAuthService;
+use Drupal\ai_connect\Service\RateLimiterService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -53,6 +54,13 @@ class ToolsController extends ControllerBase {
   protected $accountSwitcher;
 
   /**
+   * The rate limiter service.
+   *
+   * @var \Drupal\ai_connect\Service\RateLimiterService
+   */
+  protected $rateLimiter;
+
+  /**
    * Constructs a ToolsController object.
    *
    * @param \Drupal\ai_connect\Service\ModuleManager $module_manager
@@ -65,13 +73,16 @@ class ToolsController extends ControllerBase {
    *   The entity type manager.
    * @param \Drupal\Core\Session\AccountSwitcherInterface $account_switcher
    *   The account switcher service.
+   * @param \Drupal\ai_connect\Service\RateLimiterService $rate_limiter
+   *   The rate limiter service.
    */
-  public function __construct(ModuleManager $module_manager, AuthService $auth_service, OAuthService $oauth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher) {
+  public function __construct(ModuleManager $module_manager, AuthService $auth_service, OAuthService $oauth_service, EntityTypeManagerInterface $entity_type_manager, AccountSwitcherInterface $account_switcher, RateLimiterService $rate_limiter) {
     $this->moduleManager = $module_manager;
     $this->authService = $auth_service;
     $this->oauthService = $oauth_service;
     $this->entityTypeManager = $entity_type_manager;
     $this->accountSwitcher = $account_switcher;
+    $this->rateLimiter = $rate_limiter;
   }
 
   /**
@@ -83,7 +94,8 @@ class ToolsController extends ControllerBase {
           $container->get('ai_connect.auth'),
           $container->get('ai_connect.oauth_service'),
           $container->get('entity_type.manager'),
-          $container->get('account_switcher')
+          $container->get('account_switcher'),
+          $container->get('ai_connect.rate_limiter')
       );
   }
 
@@ -125,6 +137,21 @@ class ToolsController extends ControllerBase {
             ], 403
         );
     }
+
+    // Check rate limiting.
+    $rateLimitCheck = $this->rateLimiter->isRateLimited($tokenData['user_id']);
+    if ($rateLimitCheck['limited']) {
+      return new JsonResponse(
+            [
+              'error' => 'rate_limit_exceeded',
+              'message' => $rateLimitCheck['message'] ?? 'Rate limit exceeded',
+              'retry_after' => $rateLimitCheck['retry_after'] ?? 60,
+            ], 429
+        );
+    }
+
+    // Record this request for rate limiting.
+    $this->rateLimiter->recordRequest($tokenData['user_id']);
 
     $this->accountSwitcher->switchTo($account);
 
