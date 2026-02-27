@@ -1,11 +1,10 @@
 {
-  "name": "drupal/ai_connect",
-  "description": "AI Connect for Drupal - WebMCP Protocol Bridge",
+  "name": "drupal/webmcp_connect",
+  "description": "AI Connect for Drupal - WebMCP Protocol Bridge for AI agents (Claude, ChatGPT, Grok)",
   "type": "drupal-module",
   "license": "GPL-2.0-or-later",
   "require": {
-    "php": ">=7.4",
-    "firebase/php-jwt": "^6.0"
+    "php": ">=7.4"
   },
   "require-dev": {
     "drupal/core": "^9 || ^10 || ^11",
