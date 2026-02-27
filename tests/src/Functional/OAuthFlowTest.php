@@ -3,17 +3,45 @@
 namespace Drupal\Tests\ai_connect\Functional;
 
 use Drupal\Tests\BrowserTestBase;
-use Drupal\user\Entity\User;
 
+/**
+ * Tests OAuth 2.0 authorization code flow with PKCE.
+ *
+ * @group ai_connect
+ */
 class OAuthFlowTest extends BrowserTestBase {
 
+  /**
+   * Default theme.
+   *
+   * @var string
+   */
   protected $defaultTheme = 'stark';
 
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
   protected static $modules = ['ai_connect', 'user', 'system'];
 
+  /**
+   * Test user account.
+   *
+   * @var \Drupal\user\UserInterface
+   */
   protected $testUser;
+
+  /**
+   * OAuth service instance.
+   *
+   * @var \Drupal\ai_connect\Service\OAuthService
+   */
   protected $oauthService;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -25,8 +53,11 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->oauthService = \Drupal::service('ai_connect.oauth_service');
   }
 
-  public function testOAuthAuthorizationEndpointRequiresLogin() {
-    $response = $this->drupalGet('/oauth/authorize', [
+  /**
+   * Tests OAuth authorization endpoint requires login.
+   */
+  public function testOauthAuthorizationEndpointRequiresLogin() {
+    $this->drupalGet('/oauth/authorize', [
       'query' => [
         'client_id' => 'test_client',
         'redirect_uri' => 'urn:ietf:wg:oauth:2.0:oob',
@@ -40,7 +71,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertSession()->addressMatches('/\/user\/login/');
   }
 
-  public function testOAuthAuthorizationWithPKCE() {
+  /**
+   * Tests OAuth authorization with PKCE code challenge.
+   */
+  public function testOauthAuthorizationWithPkce() {
     $this->drupalLogin($this->testUser);
 
     $codeChallenge = $this->generateCodeChallenge('test_verifier_123456789012345678901234567890');
@@ -62,7 +96,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertSession()->pageTextContains($clientId);
   }
 
-  public function testOAuthAuthorizationRequiresPKCE() {
+  /**
+   * Tests OAuth authorization requires PKCE.
+   */
+  public function testOauthAuthorizationRequiresPkce() {
     $this->drupalLogin($this->testUser);
 
     $this->drupalGet('/oauth/authorize', [
@@ -78,7 +115,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertSession()->pageTextContains('PKCE required');
   }
 
-  public function testOAuthTokenExchangeWithValidCode() {
+  /**
+   * Tests OAuth token exchange with valid authorization code.
+   */
+  public function testOauthTokenExchangeWithValidCode() {
     $this->drupalLogin($this->testUser);
 
     $codeVerifier = 'test_verifier_' . bin2hex(random_bytes(16));
@@ -112,7 +152,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertEquals('Bearer', $data['token_type']);
   }
 
-  public function testOAuthTokenExchangeRejectsWrongPKCE() {
+  /**
+   * Tests OAuth token exchange rejects wrong PKCE verifier.
+   */
+  public function testOauthTokenExchangeRejectsWrongPkce() {
     $this->drupalLogin($this->testUser);
 
     $codeChallenge = $this->generateCodeChallenge('correct_verifier_12345678901234567890');
@@ -141,7 +184,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertEquals('invalid_grant', $data['error']);
   }
 
-  public function testOAuthRefreshToken() {
+  /**
+   * Tests OAuth refresh token flow.
+   */
+  public function testOauthRefreshToken() {
     $this->drupalLogin($this->testUser);
 
     $codeVerifier = 'test_verifier_' . bin2hex(random_bytes(16));
@@ -180,7 +226,10 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertNotEquals($tokenData['access_token'], $refreshData['access_token']);
   }
 
-  public function testOAuthTokenRevocation() {
+  /**
+   * Tests OAuth token revocation.
+   */
+  public function testOauthTokenRevocation() {
     $this->drupalLogin($this->testUser);
 
     $codeVerifier = 'test_verifier_' . bin2hex(random_bytes(16));
@@ -219,12 +268,18 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertArrayHasKey('error', $validateResult);
   }
 
+  /**
+   * Tests tools endpoint requires authentication.
+   */
   public function testToolsEndpointRequiresAuthentication() {
     $response = $this->drupalPost('/api/ai-connect/v1/tools/drupal.getCurrentUser', []);
 
     $this->assertSession()->statusCodeEquals(401);
   }
 
+  /**
+   * Tests tools endpoint with valid OAuth token.
+   */
   public function testToolsEndpointWithValidToken() {
     $this->drupalLogin($this->testUser);
 
@@ -269,10 +324,32 @@ class OAuthFlowTest extends BrowserTestBase {
     $this->assertEquals($this->testUser->id(), $toolData['data']['user_id']);
   }
 
+  /**
+   * Generates PKCE code challenge from verifier.
+   *
+   * @param string $verifier
+   *   The code verifier string.
+   *
+   * @return string
+   *   The base64url-encoded SHA256 hash.
+   */
   protected function generateCodeChallenge($verifier) {
     return rtrim(strtr(base64_encode(hash('sha256', $verifier, TRUE)), '+/', '-_'), '=');
   }
 
+  /**
+   * Performs POST request to Drupal.
+   *
+   * @param string $path
+   *   The path to post to.
+   * @param mixed $data
+   *   The data to post.
+   * @param array $options
+   *   Additional request options.
+   *
+   * @return string
+   *   The response body.
+   */
   protected function drupalPost($path, $data, $options = []) {
     $client = $this->getHttpClient();
 
