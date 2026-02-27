@@ -272,7 +272,7 @@ class OAuthFlowTest extends BrowserTestBase {
    * Tests tools endpoint requires authentication.
    */
   public function testToolsEndpointRequiresAuthentication() {
-    $response = $this->drupalPost('/api/ai-connect/v1/tools/drupal.getCurrentUser', []);
+    $this->drupalPost('/api/ai-connect/v1/tools/drupal.getCurrentUser', []);
 
     $this->assertSession()->statusCodeEquals(401);
   }
